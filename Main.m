@@ -1,4 +1,4 @@
-# type "Main" inside the "Command Window" tab
+# type "Main" inside the "Command Window" tab, run with octave or mathlab
 
 function Main()
    N = 25;
