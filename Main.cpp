@@ -9,6 +9,11 @@
 
 #define N 9         
 #define M 9         // M chia het cho so cpu (-np 3)
+
+// dung de test hieu nang
+// #define N 9000         
+// #define M 9000         // M chia het cho so cpu (-np 3)
+
 #define tolerance 0.0000001
 
 #define c0 0.25     // periodic boudary
@@ -91,8 +96,13 @@ int main(int argc, char *argv[])
             
         } while (global_maxConDiff > tolerance);  
 
-        DisplayMatrix(conMatx, N, M);
-        
+        if (M > 100) {
+            // test hieu nang M = 9000
+            printf("cpu = 1 ... hoan thanh");
+        } else {
+            DisplayMatrix(conMatx, N, M);
+        }
+
         MPI_Finalize();
         return 0;
     }
@@ -182,7 +192,12 @@ int main(int argc, char *argv[])
         recvptr = NULL;
     }
 
-    DisplayMatrix(conMatx_cpu, N, ms);
+    if (M > 100) {
+        // test hieu nang M = 9000
+        printf("cpu = 3 ... hoan thanh");
+    } else {
+        DisplayMatrix(conMatx_cpu, N, ms);
+    }
 
     // MPI_Gather(&conMatx_cpu[0][0], N * ms, MPI_FLOAT, recvptr, M, latticecoltype, 0, MPI_COMM_WORLD);
     // MPI_Gather( const void* sendbuf , int sendcount , MPI_Datatype sendtype , void* recvbuf , int recvcount , MPI_Datatype recvtype , int root , MPI_Comm comm);
