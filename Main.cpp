@@ -6,13 +6,14 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <math.h>
+ #include <time.h>
 
-#define N 9         
-#define M 9         // M chia het cho so cpu (-np 3)
+// #define N 9         
+// #define M 9         // M chia het cho so cpu (-np 3)
 
 // dung de test hieu nang
-// #define N 9000         
-// #define M 9000         // M chia het cho so cpu (-np 3)
+#define N 60         
+#define M 300         // M chia het cho so cpu (-np 3)
 
 #define tolerance 0.0000001
 
@@ -53,8 +54,13 @@ int main(int argc, char *argv[])
     float **conMatx = InitMatrix2d(N, M);   // concentration matrix
     float *sendptr, *recvptr;
 
+    clock_t start, end;  // calculate time
+    double cpu_time_used; // calculate time
+
     // if only one process
     if (num_process == 1) {
+        start = clock(); // calculate time
+
         float **conMatx = InitMatrix2d(N, M);
 
         float global_maxConDiff, prevCon;      // max concentration difference
@@ -96,9 +102,12 @@ int main(int argc, char *argv[])
             
         } while (global_maxConDiff > tolerance);  
 
+        end = clock(); // calculate time
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; // calculate time
+
         if (M > 100) {
-            // test hieu nang M = 9000
-            printf("cpu = 1 ... hoan thanh");
+            // test hieu nang M = 300
+            printf("cpu = 1 ... hoan thanh in %f s \n", cpu_time_used);
         } else {
             DisplayMatrix(conMatx, N, M);
         }
@@ -138,6 +147,8 @@ int main(int argc, char *argv[])
     float local_maxConDiff, global_maxConDiff, prevCon;      // max concentration difference
     float west, east, south, north;
 
+    start = clock(); // calculate time
+    
     do {
         local_maxConDiff = 0;
         global_maxConDiff = 0;
@@ -185,6 +196,9 @@ int main(int argc, char *argv[])
         
     } while (global_maxConDiff > tolerance);    
 
+    end = clock(); // calculate time
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; // calculate time
+
     if(processId == 0)  {
         //result = InitMatrix2d(N,M);         // mảng 2 chiều để tiện thao tác
         recvptr = &(conMatx[0][0]);            // mảng 1 chiều thì chỉ đến mảng 2 chiều để dễ làm việc với mpi
@@ -193,8 +207,8 @@ int main(int argc, char *argv[])
     }
 
     if (M > 100) {
-        // test hieu nang M = 9000
-        printf("cpu = 3 ... hoan thanh");
+        // test hieu nang M = 300
+        printf("cpu = 3 ... hoan thanh in %f s \n", cpu_time_used);
     } else {
         DisplayMatrix(conMatx_cpu, N, ms);
     }
