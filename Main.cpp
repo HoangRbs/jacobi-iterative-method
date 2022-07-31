@@ -92,7 +92,9 @@ int main(int argc, char *argv[])
         } while (global_maxConDiff > tolerance);  
 
         DisplayMatrix(conMatx, N, M);
-        return;
+        
+        MPI_Finalize();
+        return 0;
     }
 
     int ms = M / num_process;
