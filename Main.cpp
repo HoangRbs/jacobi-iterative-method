@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
     // if only one process
     if (num_process == 1) {
-        float **conMatx_cpu = InitMatrix2d(N, M);
+        float **conMatx = InitMatrix2d(N, M);
 
         float global_maxConDiff, prevCon;      // max concentration difference
         float west, east, south, north;
@@ -66,26 +66,26 @@ int main(int argc, char *argv[])
 
                 for (int j = 0; j < M; j++) {
 
-                    prevCon = conMatx_cpu[i][j];
+                    prevCon = conMatx[i][j];
                     // nếu Cij là source
                     if(i == N - 1) {
-                        conMatx_cpu[i][j] = 1;
+                        conMatx[i][j] = 1;
                     } 
                     // nếu Cij là sink
                     else if (i == 0) {
-                        conMatx_cpu[i][j] = 0;
+                        conMatx[i][j] = 0;
                     } 
                     else {
-                        west = (j == 0) ? C0 : conMatx_cpu[i][j - 1];
-                        east = (j == M - 1) ? CL : conMatx_cpu[i][j + 1];
-                        north = conMatx_cpu[i - 1][j];
-                        south = conMatx_cpu[i + 1][j];
+                        west = (j == 0) ? C0 : conMatx[i][j - 1];
+                        east = (j == M - 1) ? CL : conMatx[i][j + 1];
+                        north = conMatx[i - 1][j];
+                        south = conMatx[i + 1][j];
 
-                        conMatx_cpu[i][j] = 0.25 * (west + east + south + north);
+                        conMatx[i][j] = 0.25 * (west + east + south + north);
                     }
                     
                     // when <= tolerance 0.000000001, it means maxConDiff still == 0 --> maxConDiff < tolerance
-                    if(fabs(conMatx_cpu[i][j] - prevCon) > tolerance) global_maxConDiff = fabs(conMatx_cpu[i][j] - prevCon);
+                    if(fabs(conMatx[i][j] - prevCon) > tolerance) global_maxConDiff = fabs(conMatx[i][j] - prevCon);
                 }
             }
             
