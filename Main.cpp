@@ -1,5 +1,4 @@
 // chạy với 2 câu lệnh: 
-// install mpi on ubuntu or windows wsl2 system and run this file
 // mpicxx Main.cpp
 // mpirun -np 3 ./a.out
 
@@ -9,7 +8,7 @@
 #include <math.h>
 
 #define N 9         
-#define M 9         // M chia het cho so cpu
+#define M 9         // M chia het cho so cpu (-np 3)
 #define tolerance 0.0000001
 
 #define c0 0.25     // periodic boudary
@@ -36,7 +35,7 @@ int main(int argc, char *argv[])
     int num_process, processId;
     MPI_Status status;
 
-    MPI_Comm_size(MPI_COMM_WORLD, &num_process);    // get OUT num_processes
+    MPI_Comm_size(MPI_COMM_WORLD, &num_process);    // get OUT num_processes (-np 3)
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);      // get OUT id_process   
 
     // if (M % num_process != 0) {                     // M nen chia het cho so process
@@ -48,6 +47,53 @@ int main(int argc, char *argv[])
 
     float **conMatx = InitMatrix2d(N, M);   // concentration matrix
     float *sendptr, *recvptr;
+
+    // if only one process
+    if (num_process == 1) {
+        float **conMatx_cpu = InitMatrix2d(N, ms);
+
+        float global_maxConDiff, prevCon;      // max concentration difference
+        float west, east, south, north;
+        float C0, CL = 0.25;
+
+        do {
+
+            global_maxConDiff = 0;
+            prevCon = 0;
+
+            // loop all grid points 
+            for(int i = 0; i < N; i++) {
+
+                for (int j = 0; j < M; j++) {
+
+                    prevCon = conMatx_cpu[i][j];
+                    // nếu Cij là source
+                    if(i == N - 1) {
+                        conMatx_cpu[i][j] = 1;
+                    } 
+                    // nếu Cij là sink
+                    else if (i == 0) {
+                        conMatx_cpu[i][j] = 0;
+                    } 
+                    else {
+                        west = (j == 0) ? C0 : conMatx_cpu[i][j - 1];
+                        east = (j == M - 1) ? CL : conMatx_cpu[i][j + 1];
+                        north = conMatx_cpu[i - 1][j];
+                        south = conMatx_cpu[i + 1][j];
+
+                        conMatx_cpu[i][j] = 0.25 * (west + east + south + north);
+                    }
+                    
+                    // when <= tolerance 0.000000001, it means maxConDiff still == 0 --> maxConDiff < tolerance
+                    if(fabs(conMatx_cpu[i][j] - prevCon) > tolerance) global_maxConDiff = fabs(conMatx_cpu[i][j] - prevCon);
+                }
+            }
+            
+        } while (global_maxConDiff > tolerance);  
+
+        DisplayMatrix(conMatx, N, M);
+        return;
+    }
 
     int ms = M / num_process;
     float **conMatx_cpu = InitMatrix2d(N, ms);
@@ -125,7 +171,7 @@ int main(int argc, char *argv[])
 
         MPI_Allreduce(&local_maxConDiff, &global_maxConDiff, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
         
-    } while (global_maxConDiff > tolerance);
+    } while (global_maxConDiff > tolerance);    
 
     if(processId == 0)  {
         //result = InitMatrix2d(N,M);         // mảng 2 chiều để tiện thao tác
