@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
     // if only one process
     if (num_process == 1) {
-        float **conMatx_cpu = InitMatrix2d(N, ms);
+        float **conMatx_cpu = InitMatrix2d(N, M);
 
         float global_maxConDiff, prevCon;      // max concentration difference
         float west, east, south, north;
